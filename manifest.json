@@ -1,39 +1,27 @@
 {
     "manifest_version": 3,
     "name": "ExamScraper",
-    "version": "1.0.0",
-    "description": "考试题目导出工具",
+    "version": "1.0.2",
+    "description": "考试题目导出工具，新增AI答题，但是仍未修复爬取格式错乱的问题，这会导致AI答题高错误率",
     "permissions": [
       "activeTab",
       "downloads",
       "scripting",
       "declarativeContent",
-      "storage",
-      "*://*.omniedu.com/*"
+      "storage"
     ],
     "host_permissions": [
-      "<all_urls>"
+      "*://*.omniedu.com/*",
+      "http://localhost:11434/*",
+      "https://xiaoai.plus/v1*"
     ],
-    "action": {
-      "default_icon": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
-      }
-    },
     "background": {
-      "service_worker": "scripts/background.js",
-      "persistent": false
+      "service_worker": "scripts/background.js"
     },
     "content_scripts": [
       {
         "matches": ["*://*.omniedu.com/*"],
-        "js": ["scripts/content.js"],
-        "run_at": "document_end"
+        "js": ["scripts/content.js"]
       }
-    ],
-    "web_accessible_resources": [{
-      "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
-    }]
+    ]
   }
