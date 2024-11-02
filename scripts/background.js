@@ -1,6 +1,16 @@
 chrome.runtime.onInstalled.addListener(() => {
-    console.log('考试题库整理助手已安装');
+  // 设置页面匹配规则
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
+    chrome.declarativeContent.onPageChanged.addRules([{
+      conditions: [
+        new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { hostEquals: 'omniedu.com' }
+        })
+      ],
+      actions: [new chrome.declarativeContent.ShowAction()]
+    }]);
   });
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'downloadCSV') {

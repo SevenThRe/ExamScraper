@@ -28,7 +28,7 @@ class ExamScraper {
       console.log('[ExamScraper] 找到题目组数量:', groups.length);
       
       if (groups.length === 0) {
-        throw new Error('未找到题目组，请确保页面已加载完成');
+        throw new Error('未找到题目组，请确保页面已加载完');
       }
       
       let currentQuestionNumber = 1;
@@ -216,6 +216,7 @@ function createButton(text, onlyWrong) {
 }
 
 function createFloatingPanel() {
+  // 创建主面板
   const panel = document.createElement('div');
   panel.id = 'exam-scraper-panel';
   panel.style.cssText = `
@@ -231,32 +232,95 @@ function createFloatingPanel() {
     cursor: move;
   `;
 
-  const title = document.createElement('div');
-  title.textContent = '智云题库助手';
-  title.style.cssText = `
-    font-weight: bold;
+  // 创建标题栏
+  const titleBar = document.createElement('div');
+  titleBar.style.cssText = `
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
   `;
 
+  const title = document.createElement('div');
+  title.textContent = '智云题库助手';
+  title.style.fontWeight = 'bold';
+
+  // 创建最小化按钮
+  const minimizeBtn = document.createElement('button');
+  minimizeBtn.innerHTML = '−';
+  minimizeBtn.style.cssText = `
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+    color: #666;
+  `;
+
+  titleBar.appendChild(title);
+  titleBar.appendChild(minimizeBtn);
+
   const allButton = createButton('导出全部题目', false);
   const wrongButton = createButton('仅导出错题', true);
 
-  panel.appendChild(title);
+  panel.appendChild(titleBar);
   panel.appendChild(allButton);
   panel.appendChild(wrongButton);
 
+  // 创建悬浮球
+  const floatingBall = document.createElement('div');
+  floatingBall.id = 'exam-scraper-ball';
+  floatingBall.style.cssText = `
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background-image: url(${chrome.runtime.getURL('icons/icon48.png')});
+    background-size: cover;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 999999;
+    display: none;
+  `;
+
+  // 添加拖动功能
+  makeDraggable(panel);
+  makeDraggable(floatingBall);
+
+  // 最小化按钮点击事件
+  minimizeBtn.addEventListener('click', () => {
+    panel.style.display = 'none';
+    floatingBall.style.display = 'block';
+  });
+
+  // 悬浮球点击事件
+  floatingBall.addEventListener('click', () => {
+    floatingBall.style.display = 'none';
+    panel.style.display = 'block';
+  });
+
+  document.body.appendChild(panel);
+  document.body.appendChild(floatingBall);
+  console.log('[ExamScraper] 面板已创建');
+}
+
+// 添加拖动功能的辅助函数
+function makeDraggable(element) {
   let isDragging = false;
   let currentX;
   let currentY;
   let initialX;
   let initialY;
 
-  panel.addEventListener('mousedown', e => {
+  element.addEventListener('mousedown', e => {
     isDragging = true;
-    initialX = e.clientX - panel.offsetLeft;
-    initialY = e.clientY - panel.offsetTop;
+    initialX = e.clientX - element.offsetLeft;
+    initialY = e.clientY - element.offsetTop;
   });
 
   document.addEventListener('mousemove', e => {
@@ -264,18 +328,39 @@ function createFloatingPanel() {
       e.preventDefault();
       currentX = e.clientX - initialX;
       currentY = e.clientY - initialY;
-      panel.style.left = `${currentX}px`;
-      panel.style.top = `${currentY}px`;
-      panel.style.right = 'auto';
+
+      // 限制在视窗范围内
+      const maxX = window.innerWidth - element.offsetWidth;
+      const maxY = window.innerHeight - element.offsetHeight;
+      
+      currentX = Math.min(Math.max(0, currentX), maxX);
+      currentY = Math.min(Math.max(0, currentY), maxY);
+
+      element.style.left = `${currentX}px`;
+      element.style.top = `${currentY}px`;
+      element.style.right = 'auto';
     }
   });
 
   document.addEventListener('mouseup', () => {
-    isDragging = false;
+    if (isDragging) {
+      isDragging = false;
+      
+      // 如果是悬浮球，添加吸附效果
+      if (element.id === 'exam-scraper-ball') {
+        const halfWidth = window.innerWidth / 2;
+        const currentLeft = parseInt(element.style.left);
+        
+        // 吸附到最近的边缘
+        if (currentLeft < halfWidth) {
+          element.style.left = '0';
+        } else {
+          element.style.left = 'auto';
+          element.style.right = '0';
+        }
+      }
+    }
   });
-
-  document.body.appendChild(panel);
-  console.log('[ExamScraper] 面板已创建');
 }
 
 async function downloadCSV(csv, filename) {
