@@ -1,0 +1,34 @@
+{
+    "manifest_version": 3,
+    "name": "智云题库助手",
+    "version": "1.0.3",
+    "description": "More bugs in coming .This is a piece of shit",
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "action": {
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png"
+        },
+        "default_title": "智云题库助手"
+    },
+    "background": {
+        "service_worker": "scripts/background.js" 
+    },
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["*://*.omniedu.com/*"],
+        "js": [
+        "scripts/content.js"
+      ]
+      }
+    ],
+    "id": "mdalkkhpcddiojhkligbdibogpcdchde"
+}
